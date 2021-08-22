@@ -13,6 +13,8 @@ import androidx.appcompat.app.AppCompatActivity;
 import com.androidplot.xy.BoundaryMode;
 import com.androidplot.xy.StepMode;
 import com.androidplot.xy.XYPlot;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.polar.polarsdkedghrdemo.mqtt.EcgMqttClient;
 
 import org.reactivestreams.Publisher;
 
@@ -48,7 +50,7 @@ public class ECGActivity extends AppCompatActivity implements PlotterListener {
     private Disposable ecgDisposable = null;
     private final Context classContext = this;
     private String deviceId;
-
+    private EcgMqttClient mqttClient;
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -160,8 +162,11 @@ public class ECGActivity extends AppCompatActivity implements PlotterListener {
 
     @Override
     public void onDestroy() {
+
+        mqttClient.disconnectFromMqttServer();
         super.onDestroy();
         api.shutDown();
+
     }
 
     public void streamECG() {
@@ -184,22 +189,38 @@ public class ECGActivity extends AppCompatActivity implements PlotterListener {
                                         String strDate = new SimpleDateFormat("yyyy-MM-dd.HH.mm.ss.SS").format(dateString);
 
                                         String logString = strDate+","+ polarEcgData.samples;
+
+
                                        // Log.d(TAG, logString);
 
 
-                                        /*
                                         for (Integer data : polarEcgData.samples) {
                                             //SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd.HH.mm.ss.SS");
                                             Date date =  new Date();
-                                            String strDate = new SimpleDateFormat("yyyy-MM-dd.HH.mm.ss.SS").format(date);
                                            // System.out.println("Time in milliseconds using Date class: " + timeMilli);
                                            // System.out.println("polarEcgData.samples " + polarEcgData.samples);
                                             String log =strDate + "," + data;
                                             Log.d(null, log);
-                                            plotter.sendSingleSample((float) ((float) data / 500));
+
+                                            HeartData heartData = new HeartData();
+                                            heartData.setEcg((float) ((float) data / 500));
+                                            heartData.setHeartRate(new Float(67));
+
+                                            if (mqttClient == null) {
+                                                 mqttClient = new EcgMqttClient();
+                                                mqttClient.connectToMqttServer();
+                                            }
+
+                                            ObjectMapper Obj = new ObjectMapper();
+
+                                            String jsonStr = Obj.writeValueAsString(heartData);
+
+                                            mqttClient.publishData(jsonStr);
+
+                                           plotter.sendSingleSample((float) ((float) data / 500));
                                         }
 
-                                        */
+
 
                                     },
                                     throwable -> {
