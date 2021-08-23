@@ -18,17 +18,11 @@ import android.widget.Toast;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.polar.polarsdkedghrdemo.mqtt.EcgMqttClient;
-
-
 public class MainActivity extends AppCompatActivity {
     private static final String TAG = "Polar_MainActivity";
     private static final String SHARED_PREFS_KEY = "polar_device_id";
     private String deviceId;
     SharedPreferences sharedPreferences;
-
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -36,8 +30,6 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
         sharedPreferences = this.getPreferences(Context.MODE_PRIVATE);
         checkBT();
-
-        EcgMqttClient mqttClient = new EcgMqttClient();
     }
 
     public void onClickConnect(View view) {

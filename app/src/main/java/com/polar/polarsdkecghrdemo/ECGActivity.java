@@ -18,9 +18,12 @@ import com.polar.polarsdkedghrdemo.mqtt.EcgMqttClient;
 
 import org.reactivestreams.Publisher;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 import java.util.TimeZone;
+
 import io.reactivex.rxjava3.android.schedulers.AndroidSchedulers;
 import io.reactivex.rxjava3.disposables.Disposable;
 import io.reactivex.rxjava3.functions.Function;
@@ -32,6 +35,7 @@ import polar.com.sdk.api.model.PolarDeviceInfo;
 import polar.com.sdk.api.model.PolarEcgData;
 import polar.com.sdk.api.model.PolarHrData;
 import polar.com.sdk.api.model.PolarSensorSetting;
+
 import java.util.Calendar;
 import java.util.Date;
 import java.time.*; // Este paquete contiene LocalDate, LocalTime y LocalDateTime.
@@ -39,6 +43,9 @@ import java.text.SimpleDateFormat;
 
 
 public class ECGActivity extends AppCompatActivity implements PlotterListener {
+
+
+
     private static final String TAG = "ECGActivity";
 
     private PolarBleApi api;
@@ -51,6 +58,7 @@ public class ECGActivity extends AppCompatActivity implements PlotterListener {
     private final Context classContext = this;
     private String deviceId;
     private EcgMqttClient mqttClient;
+
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -58,6 +66,10 @@ public class ECGActivity extends AppCompatActivity implements PlotterListener {
         deviceId = getIntent().getStringExtra("id");
         textViewHR = findViewById(R.id.info);
         textViewFW = findViewById(R.id.fw);
+
+
+        mqttClient = new EcgMqttClient();
+        mqttClient.connectToMqttServer();
 
         plot = findViewById(R.id.plot);
 
@@ -132,10 +144,10 @@ public class ECGActivity extends AppCompatActivity implements PlotterListener {
 
             @Override
             public void hrNotificationReceived(@NonNull String s, @NonNull PolarHrData polarHrData) {
-                Date  dateString = new Date();
+                Date dateString = new Date();
                 //Log.d(TAG, tiempo);
                 String strDate = new SimpleDateFormat("yyyy-MM-dd.HH.mm.ss.SS").format(dateString);
-                Log.d(TAG, "HR " + dateString+ ","+polarHrData.hr);
+                Log.d(TAG, "HR " + dateString + "," + polarHrData.hr);
                 textViewHR.setText(String.valueOf(polarHrData.hr));
             }
 
@@ -174,8 +186,6 @@ public class ECGActivity extends AppCompatActivity implements PlotterListener {
             ecgDisposable =
 
 
-
-
                     api.requestStreamSettings(deviceId, PolarBleApi.DeviceStreamingFeature.ECG)
                             .toFlowable()
                             .flatMap((Function<PolarSensorSetting, Publisher<PolarEcgData>>) sensorSetting -> api.startEcgStreaming(deviceId, sensorSetting.maxSettings()))
@@ -183,44 +193,39 @@ public class ECGActivity extends AppCompatActivity implements PlotterListener {
                             .subscribe(
                                     polarEcgData -> {
                                         long timeStamp = polarEcgData.timeStamp;
-                                      Date  dateString = new Date();
+                                        Date dateString = new Date();
                                         String tiempo = convertTimeWithTimeZome(timeStamp);
-                                         //Log.d(TAG, tiempo);
+                                        //Log.d(TAG, tiempo);
                                         String strDate = new SimpleDateFormat("yyyy-MM-dd.HH.mm.ss.SS").format(dateString);
-
-                                        String logString = strDate+","+ polarEcgData.samples;
-
-
-                                       // Log.d(TAG, logString);
+                                        String logString = strDate + "," + polarEcgData.samples;
+                                        // Log.d(TAG, logString);
 
 
+/*
                                         for (Integer data : polarEcgData.samples) {
                                             //SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd.HH.mm.ss.SS");
-                                            Date date =  new Date();
-                                           // System.out.println("Time in milliseconds using Date class: " + timeMilli);
-                                           // System.out.println("polarEcgData.samples " + polarEcgData.samples);
-                                            String log =strDate + "," + data;
+                                            Date date = new Date();
+                                            // System.out.println("Time in milliseconds using Date class: " + timeMilli);
+                                            // System.out.println("polarEcgData.samples " + polarEcgData.samples);
+                                            String log = strDate + "," + data;
                                             Log.d(null, log);
 
                                             HeartData heartData = new HeartData();
                                             heartData.setEcg((float) ((float) data / 500));
                                             heartData.setHeartRate(new Float(67));
 
-                                            if (mqttClient == null) {
-                                                 mqttClient = new EcgMqttClient();
-                                                mqttClient.connectToMqttServer();
-                                            }
 
-                                            ObjectMapper Obj = new ObjectMapper();
-
-                                            String jsonStr = Obj.writeValueAsString(heartData);
-
-                                            mqttClient.publishData(jsonStr);
-
-                                           plotter.sendSingleSample((float) ((float) data / 500));
+                                       // plotter.sendSingleSample((float) ((float) data / 500.0));
                                         }
+*/
+                                        EcgDataCollection dataList = new EcgDataCollection();
 
 
+                                        dataList.setEcg(polarEcgData.samples);
+                                        dataList.setHeatRate(new Float(89));
+                                        ObjectMapper Obj = new ObjectMapper();
+                                        String jsonStr = Obj.writeValueAsString(dataList);
+                                        mqttClient.publishData(jsonStr);
 
                                     },
                                     throwable -> {
@@ -242,7 +247,7 @@ public class ECGActivity extends AppCompatActivity implements PlotterListener {
         runOnUiThread(() -> plot.redraw());
     }
 
-    public String convertTimeWithTimeZome(long time){
+    public String convertTimeWithTimeZome(long time) {
         Calendar cal = Calendar.getInstance();
         cal.setTimeZone(TimeZone.getTimeZone("UTC"));
         cal.setTimeInMillis(time);
