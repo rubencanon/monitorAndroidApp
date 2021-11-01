@@ -9,7 +9,7 @@ import org.eclipse.paho.client.mqttv3.persist.MemoryPersistence;
 
 public class EcgMqttClient {
 
-    String topic = "monitor/heart";
+    String topic = "monitor/heart/81754741";
     int qos = 2;
     String broker = "ws://broker.emqx.io:8083";
     String clientId = "Androind_RECC";

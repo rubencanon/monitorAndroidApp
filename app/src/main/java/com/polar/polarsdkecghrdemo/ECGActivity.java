@@ -40,10 +40,10 @@ import java.util.Calendar;
 import java.util.Date;
 import java.time.*; // Este paquete contiene LocalDate, LocalTime y LocalDateTime.
 import java.text.SimpleDateFormat;
+import java.util.concurrent.TimeUnit;
 
 
 public class ECGActivity extends AppCompatActivity implements PlotterListener {
-
 
 
     private static final String TAG = "ECGActivity";
@@ -146,8 +146,8 @@ public class ECGActivity extends AppCompatActivity implements PlotterListener {
             public void hrNotificationReceived(@NonNull String s, @NonNull PolarHrData polarHrData) {
                 Date dateString = new Date();
                 //Log.d(TAG, tiempo);
-                String strDate = new SimpleDateFormat("yyyy-MM-dd.HH.mm.ss.SS").format(dateString);
-                Log.d(TAG, "HR " + dateString + "," + polarHrData.hr);
+                String strDate = new SimpleDateFormat("yyyy-MM-dd.HH.mm.ss.SSS").format(dateString);
+                // Log.d(TAG, "HR: " + strDate + "," + polarHrData.hr);
                 textViewHR.setText(String.valueOf(polarHrData.hr));
             }
 
@@ -194,20 +194,24 @@ public class ECGActivity extends AppCompatActivity implements PlotterListener {
                                     polarEcgData -> {
                                         long timeStamp = polarEcgData.timeStamp;
                                         Date dateString = new Date();
-                                        String tiempo = convertTimeWithTimeZome(timeStamp);
                                         //Log.d(TAG, tiempo);
-                                        String strDate = new SimpleDateFormat("yyyy-MM-dd.HH.mm.ss.SS").format(dateString);
+                                        String strDate = new SimpleDateFormat("yyyy-MM-dd.HH.mm.ss.SSSSS").format(dateString);
                                         String logString = strDate + "," + polarEcgData.samples;
                                         // Log.d(TAG, logString);
 
 
-/*
                                         for (Integer data : polarEcgData.samples) {
                                             //SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd.HH.mm.ss.SS");
-                                            Date date = new Date();
                                             // System.out.println("Time in milliseconds using Date class: " + timeMilli);
                                             // System.out.println("polarEcgData.samples " + polarEcgData.samples);
+                                            dateString = new Date();
+
+                                            TimeUnit.MILLISECONDS.sleep(1);
+
+                                            strDate = new SimpleDateFormat("yyyy-MM-dd.HH.mm.ss.SSS").format(dateString);
+
                                             String log = strDate + "," + data;
+                                            //String log =  "" + data;
                                             Log.d(null, log);
 
                                             HeartData heartData = new HeartData();
@@ -215,9 +219,10 @@ public class ECGActivity extends AppCompatActivity implements PlotterListener {
                                             heartData.setHeartRate(new Float(67));
 
 
-                                       // plotter.sendSingleSample((float) ((float) data / 500.0));
+                                            // plotter.sendSingleSample((float) ((float) data / 500.0));
                                         }
-*/
+
+
                                         EcgDataCollection dataList = new EcgDataCollection();
 
 
@@ -254,6 +259,18 @@ public class ECGActivity extends AppCompatActivity implements PlotterListener {
         return (cal.get(Calendar.YEAR) + " " + (cal.get(Calendar.MONTH) + 1) + " "
                 + cal.get(Calendar.DAY_OF_MONTH) + " " + cal.get(Calendar.HOUR_OF_DAY) + ":"
                 + cal.get(Calendar.MINUTE));
+
+    }
+
+    private String getReadableTime(Long nanos) {
+
+        long tempSec = nanos / (1000 * 1000 * 1000);
+        long sec = tempSec % 60;
+        long min = (tempSec / 60) % 60;
+        long hour = (tempSec / (60 * 60)) % 24;
+        long day = (tempSec / (24 * 60 * 60)) % 24;
+
+        return String.format("%dd %dh %dm %ds", day, hour, min, sec);
 
     }
 }
