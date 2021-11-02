@@ -43,7 +43,7 @@ import java.text.SimpleDateFormat;
 import java.util.concurrent.TimeUnit;
 
 
-public class ECGActivity extends AppCompatActivity implements PlotterListener {
+public class ECGActivity extends AppCompatActivity {
 
 
     private static final String TAG = "ECGActivity";
@@ -51,27 +51,26 @@ public class ECGActivity extends AppCompatActivity implements PlotterListener {
     private PolarBleApi api;
     private TextView textViewHR;
     private TextView textViewFW;
-    private XYPlot plot;
-    private Plotter plotter;
 
     private Disposable ecgDisposable = null;
     private final Context classContext = this;
     private String deviceId;
+    private String patientId;
+
     private EcgMqttClient mqttClient;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_ecg);
-        deviceId = getIntent().getStringExtra("id");
+        deviceId = getIntent().getStringExtra("deviceId");
+        patientId= getIntent().getStringExtra("patientId");
         textViewHR = findViewById(R.id.info);
         textViewFW = findViewById(R.id.fw);
 
 
         mqttClient = new EcgMqttClient();
         mqttClient.connectToMqttServer();
-
-        plot = findViewById(R.id.plot);
 
         api = PolarBleApiDefaultImpl.defaultImplementation(this,
                 PolarBleApi.FEATURE_POLAR_SENSOR_STREAMING |
@@ -147,7 +146,7 @@ public class ECGActivity extends AppCompatActivity implements PlotterListener {
                 Date dateString = new Date();
                 //Log.d(TAG, tiempo);
                 String strDate = new SimpleDateFormat("yyyy-MM-dd.HH.mm.ss.SSS").format(dateString);
-                // Log.d(TAG, "HR: " + strDate + "," + polarHrData.hr);
+                 Log.d(TAG, "HR: " + strDate + "," + polarHrData.hr);
                 textViewHR.setText(String.valueOf(polarHrData.hr));
             }
 
@@ -161,15 +160,6 @@ public class ECGActivity extends AppCompatActivity implements PlotterListener {
         } catch (PolarInvalidArgument a) {
             a.printStackTrace();
         }
-
-        plotter = new Plotter("ECG");
-        plotter.setListener(this);
-
-        plot.addSeries(plotter.getSeries(), plotter.getFormatter());
-        plot.setRangeBoundaries(-3.3, 3.3, BoundaryMode.FIXED);
-        plot.setRangeStep(StepMode.INCREMENT_BY_FIT, 0.55);
-        plot.setDomainBoundaries(0, 500, BoundaryMode.GROW);
-        plot.setLinesPerRangeLabel(2);
     }
 
     @Override
@@ -230,6 +220,7 @@ public class ECGActivity extends AppCompatActivity implements PlotterListener {
                                         dataList.setHeatRate(new Float(89));
                                         ObjectMapper Obj = new ObjectMapper();
                                         String jsonStr = Obj.writeValueAsString(dataList);
+                                        mqttClient.setPatientId(patientId);
                                         mqttClient.publishData(jsonStr);
 
                                     },
@@ -245,11 +236,6 @@ public class ECGActivity extends AppCompatActivity implements PlotterListener {
             ecgDisposable.dispose();
             ecgDisposable = null;
         }
-    }
-
-    @Override
-    public void update() {
-        runOnUiThread(() -> plot.redraw());
     }
 
     public String convertTimeWithTimeZome(long time) {

@@ -9,22 +9,26 @@ import org.eclipse.paho.client.mqttv3.persist.MemoryPersistence;
 
 public class EcgMqttClient {
 
-    String topic = "monitor/heart/81754741";
+    String topic = "monitor/heart/";
     int qos = 2;
     String broker = "ws://broker.emqx.io:8083";
-    String clientId = "Androind_RECC";
+    String patientId = "81754742";
     MemoryPersistence persistence = new MemoryPersistence();
     MqttClient sampleClient;
 
-    public void publishData(String messsage) {
+    public void setPatientId(String patientId) {
+        this.patientId = patientId;
+    }
+
+    public void publishData(String message) {
 
 
         try {
 
-            System.out.println("Publishing message: " + messsage);
-            MqttMessage message = new MqttMessage(messsage.getBytes());
-            message.setQos(qos);
-            sampleClient.publish(topic, message);
+            System.out.println("Publishing message: " + message);
+            MqttMessage mqttMessage = new MqttMessage(message.getBytes());
+            mqttMessage.setQos(qos);
+            sampleClient.publish(topic+ patientId, mqttMessage);
             System.out.println("Message published");
 
         } catch (MqttException me) {
@@ -43,7 +47,7 @@ public class EcgMqttClient {
 
         try {
 
-            sampleClient = new MqttClient(broker, clientId, persistence);
+            sampleClient = new MqttClient(broker, patientId, persistence);
             MqttConnectOptions connOpts = new MqttConnectOptions();
             connOpts.setCleanSession(true);
             System.out.println("Connecting to broker: " + broker);

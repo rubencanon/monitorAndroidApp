@@ -21,7 +21,11 @@ import androidx.appcompat.app.AppCompatActivity;
 public class MainActivity extends AppCompatActivity {
     private static final String TAG = "Polar_MainActivity";
     private static final String SHARED_PREFS_KEY = "polar_device_id";
+    private static final String SHARED_PREFS_KEY_PATIENT = "polar_patient_id";
+
     private String deviceId;
+    private String patientId;
+
     SharedPreferences sharedPreferences;
 
     @Override
@@ -35,13 +39,17 @@ public class MainActivity extends AppCompatActivity {
     public void onClickConnect(View view) {
         checkBT();
         deviceId = sharedPreferences.getString(SHARED_PREFS_KEY, "");
-        Log.d(TAG, deviceId);
-        if (deviceId.equals("")) {
+        patientId = sharedPreferences.getString(SHARED_PREFS_KEY_PATIENT, "");
+
+        Log.d(TAG,  "Device: " +  deviceId+ "Patient: " + patientId);
+        if (deviceId.equals("") || patientId.equals("")) {
             showDialog(view);
         } else {
             Toast.makeText(this, getString(R.string.connecting) + " " + deviceId, Toast.LENGTH_SHORT).show();
             Intent intent = new Intent(this, ECGActivity.class);
-            intent.putExtra("id", deviceId);
+            intent.putExtra("deviceId", deviceId);
+            intent.putExtra("patientId", patientId);
+
             startActivity(intent);
         }
     }
@@ -70,14 +78,22 @@ public class MainActivity extends AppCompatActivity {
 
         View viewInflated = LayoutInflater.from(getApplicationContext()).inflate(R.layout.device_id_dialog_layout, (ViewGroup) view.getRootView(), false);
 
-        final EditText input = viewInflated.findViewById(R.id.input);
-        input.setInputType(InputType.TYPE_CLASS_TEXT);
+
+        final EditText deviceIdIn = viewInflated.findViewById(R.id.deviceId);
+        final EditText patientIdIn = viewInflated.findViewById(R.id.patientId);
+
+
+        deviceIdIn.setInputType(InputType.TYPE_CLASS_TEXT);
         dialog.setView(viewInflated);
 
         dialog.setPositiveButton("OK", (dialog1, which) -> {
-            deviceId = input.getText().toString();
+            deviceId = deviceIdIn.getText().toString();
+            patientId = patientIdIn.getText().toString();
+
             SharedPreferences.Editor editor = sharedPreferences.edit();
             editor.putString(SHARED_PREFS_KEY, deviceId);
+            editor.putString(SHARED_PREFS_KEY_PATIENT, patientId);
+
             editor.apply();
         });
         dialog.setNegativeButton("Cancel", (dialog12, which) -> dialog12.cancel());
