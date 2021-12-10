@@ -44,6 +44,7 @@
         app:layout_constraintTop_toBottomOf="@+id/buttonSetID" />
 
     <Button
+        android:visibility="invisible"
         android:id="@+id/buttonConnect2"
         style="@style/Widget.AppCompat.Button"
         android:layout_width="0dp"
@@ -62,5 +63,6 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/buttonConnect"
         app:layout_constraintVertical_bias="1.0" />
+
 
 </androidx.constraintlayout.widget.ConstraintLayout>

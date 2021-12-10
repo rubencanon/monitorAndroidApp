@@ -10,16 +10,12 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 
-import com.androidplot.xy.BoundaryMode;
-import com.androidplot.xy.StepMode;
-import com.androidplot.xy.XYPlot;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.polar.polarsdkedghrdemo.mqtt.EcgMqttClient;
 
 import org.reactivestreams.Publisher;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.time.LocalDate;
 import java.util.Set;
 import java.util.UUID;
 import java.util.TimeZone;
@@ -38,7 +34,6 @@ import polar.com.sdk.api.model.PolarSensorSetting;
 
 import java.util.Calendar;
 import java.util.Date;
-import java.time.*; // Este paquete contiene LocalDate, LocalTime y LocalDateTime.
 import java.text.SimpleDateFormat;
 import java.util.concurrent.TimeUnit;
 
@@ -189,7 +184,7 @@ public class ECGActivity extends AppCompatActivity {
                                         String logString = strDate + "," + polarEcgData.samples;
                                         // Log.d(TAG, logString);
 
-
+/*
                                         for (Integer data : polarEcgData.samples) {
                                             //SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd.HH.mm.ss.SS");
                                             // System.out.println("Time in milliseconds using Date class: " + timeMilli);
@@ -211,15 +206,20 @@ public class ECGActivity extends AppCompatActivity {
 
                                             // plotter.sendSingleSample((float) ((float) data / 500.0));
                                         }
+*/
 
+                                        strDate = new SimpleDateFormat("yyyy-MM-dd.HH.mm.ss.SSS").format(dateString);
+                                      //  strDate = new SimpleDateFormat("yyyy-MM-dd.HH.mm").format(dateString);
 
                                         EcgDataCollection dataList = new EcgDataCollection();
-
-
+                                        dataList.setPatientId(patientId);
+                                        dataList.setDate(strDate);
                                         dataList.setEcg(polarEcgData.samples);
-                                        dataList.setHeatRate(new Float(89));
+                                        dataList.setHr(new Float(89));
                                         ObjectMapper Obj = new ObjectMapper();
                                         String jsonStr = Obj.writeValueAsString(dataList);
+                                        Log.d(null, jsonStr);
+
                                         mqttClient.setPatientId(patientId);
                                         mqttClient.publishData(jsonStr);
 
