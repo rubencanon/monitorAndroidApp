@@ -27,10 +27,8 @@ import polar.com.sdk.api.errors.PolarInvalidArgument;
 import polar.com.sdk.api.model.PolarDeviceInfo;
 import polar.com.sdk.api.model.PolarHrData;
 
-public class HRActivity extends AppCompatActivity implements PlotterListener {
+public class HRActivity extends AppCompatActivity  {
     private static final String TAG = "HRActivity";
-    private XYPlot plot;
-    private TimePlotter plotter;
     private TextView textViewHR;
     private TextView textViewFW;
     private PolarBleApi api;
@@ -43,8 +41,6 @@ public class HRActivity extends AppCompatActivity implements PlotterListener {
         String deviceId = getIntent().getStringExtra("id");
         textViewHR = findViewById(R.id.info2);
         textViewFW = findViewById(R.id.fw2);
-
-        plot = findViewById(R.id.plot2);
 
         api = PolarBleApiDefaultImpl.defaultImplementation(this,
                 PolarBleApi.FEATURE_BATTERY_INFO |
@@ -127,7 +123,6 @@ public class HRActivity extends AppCompatActivity implements PlotterListener {
                     msg = msg.substring(0, msg.length() - 1);
                 }
                 textViewHR.setText(msg);
-                plotter.addValues(polarHrData);
             }
 
             @Override
@@ -141,21 +136,7 @@ public class HRActivity extends AppCompatActivity implements PlotterListener {
             a.printStackTrace();
         }
 
-        plotter = new TimePlotter();
-        plotter.setListener(this);
 
-        plot.addSeries(plotter.getHrSeries(), plotter.getHrFormatter());
-        plot.addSeries(plotter.getRrSeries(), plotter.getRrFormatter());
-        plot.setRangeBoundaries(50, 100, BoundaryMode.AUTO);
-        plot.setDomainBoundaries(0, 360000, BoundaryMode.AUTO);
-        // Left labels will increment by 10
-        plot.setRangeStep(StepMode.INCREMENT_BY_VAL, 10);
-        plot.setDomainStep(StepMode.INCREMENT_BY_VAL, 60000);
-        // Make left labels be an integer (no decimal places)
-        plot.getGraph().getLineLabelStyle(XYGraphWidget.Edge.LEFT).
-                setFormat(new DecimalFormat("#"));
-        // These don't seem to have an effect
-        plot.setLinesPerRangeLabel(2);
     }
 
     @Override
@@ -164,7 +145,4 @@ public class HRActivity extends AppCompatActivity implements PlotterListener {
         api.shutDown();
     }
 
-    public void update() {
-        runOnUiThread(() -> plot.redraw());
-    }
 }
